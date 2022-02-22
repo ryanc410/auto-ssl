@@ -2,13 +2,13 @@
 
 
 # TABLE OF CONTENTS
-1. [About](https://github.com/ryanc410/auto-ssl/edit/main/README.md#about)
-2. [Usage](https://github.com/ryanc410/auto-ssl/edit/main/README.md#usage)
-3. [How it Works](https://github.com/ryanc410/auto-ssl/edit/main/README.md#how-it-works)
-4. [Issues](https://github.com/ryanc410/auto-ssl/edit/main/README.md#issues)
-5. [Contributing](https://github.com/ryanc410/auto-ssl/edit/main/README.md#contributing)
-6. [Contact](https://github.com/ryanc410/auto-ssl/edit/main/README.md#contact)
-7. [Sources](https://github.com/ryanc410/auto-ssl/edit/main/README.md#sources)
+1. [About](https://github.com/ryanc410/auto-ssl/#about)
+2. [Usage](https://github.com/ryanc410/auto-ssl/#usage)
+3. [How it Works](https://github.com/ryanc410/auto-ssl/#how-it-works)
+4. [Issues](https://github.com/ryanc410/auto-ssl/#issues)
+5. [Contributing](https://github.com/ryanc410/auto-ssl/#contributing)
+6. [Contact](https://github.com/ryanc410/auto-ssl/#contact)
+7. [Sources](https://github.com/ryanc410/auto-ssl/#sources)
 
 
 # ABOUT
@@ -54,7 +54,7 @@ If you find and errors you can create an issue [here](https://github.com/ryanc41
 Everything I have learned has been through trial and error, as well as countless hours of searching throught forums and e-books. I am always open to criticism, especially if it will help me, or someone else reading this to improve on their skills. 
 
 # CONTACT
-
+To make a suggestion, comment or to provide feedback or suggestions, you can do that [HERE](https://github.com/ryanc410/auto-ssl/discussions).
 
 # SOURCES
 This script is based upon the tutorial that I used many many times and I thought was the best one out there. Here is the link to it [Secure Apache with Lets Encrypt on Ubuntu 20.04](https://linuxize.com/post/secure-apache-with-let-s-encrypt-on-ubuntu-20-04/). I couldnt find the author's name but it was posted on July 8, 2020.
