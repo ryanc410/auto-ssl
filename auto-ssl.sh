@@ -6,6 +6,7 @@
 # Version: 3.0
 ##########################################
 E_CODE=$?
+APACHE_LOG_DIR=/var/log/apache2
 ##########################################
 function header()
 {
@@ -123,8 +124,8 @@ cat > /etc/apache2/sites-available/"$FQDN"-ssl.conf <<- _EOF_
     Protocols h2 http/1.1
     ServerName $FQDN
     DocumentRoot /var/www/$FQDN
-    ErrorLog '${APACHE_LOG_DIR}'/$FQDN-error.log
-    CustomLog '${APACHE_LOG_DIR}'/$FQDN-access.log combined
+    ErrorLog $APACHE_LOG_DIR/$FQDN-error.log
+    CustomLog $APACHE_LOG_DIR/$FQDN-access.log combined
     SSLEngine On
     SSLCertificateFile /etc/letsencrypt/live/$FQDN/fullchain.pem
     SSLCertificateKeyFile /etc/letsencrypt/live/$FQDN/privkey.pem
