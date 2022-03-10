@@ -132,6 +132,10 @@ cat > /etc/apache2/sites-available/"$FQDN"-ssl.conf <<- _EOF_
 </VirtualHost>
 _EOF_
 
+mkdir /var/www/"$FQDN"
+
+cp /var/www/html/index.html /var/www/"$FQDN"/
+
 a2ensite "$FQDN"-ssl.conf
 
 systemctl reload apache2
