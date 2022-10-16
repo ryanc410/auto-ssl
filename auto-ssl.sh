@@ -6,7 +6,7 @@
 # Version: 3.0
 ##########################################
 E_CODE=$?
-APACHE_LOG_DIR=/var/log/apache2
+DOMAINSHORT=${FQDN::-4}
 ##########################################
 function header()
 {
@@ -119,24 +119,24 @@ fi
 
 echo "Finishing up...">&3
 
-cat > /etc/apache2/sites-available/"$FQDN"-ssl.conf <<- _EOF_
+cat > /etc/apache2/sites-available/"${DOMAINSHORT}"-ssl.conf <<- _EOF_
 <VirtualHost *:443>
     Protocols h2 http/1.1
     ServerName $FQDN
-    DocumentRoot /var/www/$FQDN
-    ErrorLog $APACHE_LOG_DIR/$FQDN-error.log
-    CustomLog $APACHE_LOG_DIR/$FQDN-access.log combined
+    DocumentRoot /var/www/$DOMAINSHORT
+    ErrorLog \${APACHE_LOG_DIR}/$DOMAINSHORT-error.log
+    CustomLog \${APACHE_LOG_DIR}/$DOMAINSHORT-access.log combined
     SSLEngine On
     SSLCertificateFile /etc/letsencrypt/live/$FQDN/fullchain.pem
     SSLCertificateKeyFile /etc/letsencrypt/live/$FQDN/privkey.pem
 </VirtualHost>
 _EOF_
 
-mkdir /var/www/"$FQDN"
+mkdir /var/www/"$DOMAINSHORT"
 
-cp /var/www/html/index.html /var/www/"$FQDN"/
+cp /var/www/html/index.html /var/www/"$DOMAINSHORT"/
 
-a2ensite "$FQDN"-ssl.conf
+a2ensite "$DOMAINSHORT"-ssl.conf
 
 systemctl reload apache2
 
