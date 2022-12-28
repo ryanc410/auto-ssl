@@ -1,63 +1,53 @@
 #!/usr/bin/env bash
-##########################################
+#===========================================================#
 # Author: Ryan C https://github.com/ryanc410
 # Date: 10/21/2021
 # Description: Secures Apache with a Lets Encrypt SSL Cert
-# Version: 3.0
-##########################################
-E_CODE=$?
-DOMAINSHORT=${FQDN::-4}
-##########################################
-function header()
-{
-    clear>&3
-    echo "##################################">&3
-    echo "#     APACHE AUTO SSL SCRIPT     #">&3
-    echo "##################################">&3
-    echo "">&3
+# Version: 3.1
+#===========================================================#
+STAT=$?
+
+function header(){
+    clear
+    echo "##################################"
+    echo "#     APACHE AUTO SSL SCRIPT     #"
+    echo "##################################"
+    echo ""
 }
-function set_domain()
-{
+function err(){
+    echo -e "\e[0;31m$1\e[0m"
+}
+function success(){
+    echo -e "\e[0;32m$1\e[0m"
+}
+function set_domain(){
     header
-    echo "Enter the FQDN that you want to secure with Lets Encrypt:">&3
+    echo "Enter the FQDN of the Domain you want to secure with Lets Encrypt:"
     read FQDN
 }
-function logall()
-{
-    exec 3>&1 4>&2
-    trap 'exec 2>&4 1>&3' 0 1 2 3
-    exec 1>apache_auto_ssl.log 2>&1
-}
-function error()
-{
-    echo "A full log can be found at $PWD/apache_auto_ssl.log">&3
-}
-##########################################
-logall
 
-if [[ $EUID != 0 ]]; then
+if [[ $EUID -ne 0 ]]; then
     header
-    echo "Script must be ran with root privileges..">&3
-    error
+    error "Script needs root privileges to function!"
     sleep 3
     exit 1
 else
-    netstat -anp | grep apache2 | grep 80
-    if [[ $E_CODE != 0 ]]; then
+    dpkg -l | grep apache2 &>/dev/null
+    if [[ $STAT -ne 0 ]]; then
         header
-        echo "This script requires the Apache Web Server. Could not find an active Apache installation.">&3
-        error
+        error "This script requires the Apache Web Server.."
         sleep 3
+        echo "Install Apache and try again."
+        sleep 2
         exit 2
     fi
 fi
 
 set_domain
-
-host "$FQDN"
-while [[ $E_CODE != 0 ]]; do
+host "$FQDN" &>/dev/null
+while [[ $STAT -ne 0 ]]; do
     header
-    echo "The domain you entered, $FQDN, could not be validated."
+    error "The Domain you entered, $FQDN could not be validated."
     sleep 2
     echo "Check the spelling and try again."
     sleep 3
@@ -65,7 +55,9 @@ while [[ $E_CODE != 0 ]]; do
 done
 
 header
-echo "The Apache Auto SSL Install script will now begin, this may take some time..">&3
+success "Domain Validated!"
+sleep 2
+echo "The Apache Auto SSL Install script will now begin. This may take a few minutes depending on the speed of the system.."
 
 a2enmod ssl headers http2
 
@@ -103,51 +95,44 @@ systemctl reload apache2
 
 certbot certonly --agree-tos --non-interactive --email admin@"$FQDN" --webroot -w /var/lib/letsencrypt/ -d "$FQDN" -d www."$FQDN"
 
-if [[ $E_CODE != 0 ]]; then
+if [[ $STAT -ne 0 ]]; then
     header
-    echo "The SSL Certificate could not be issued for $FQDN..">&3
+    error "The SSL Certificate could not be issued for $FQDN.."
     sleep 3
-    echo "Make sure your DNS records are configured correctly. For DNS configuration examples, execute the script with -h, --help.">&3
-    error
+    echo "Check your DNS Configuration and try again.."
     sleep 3
     exit 3
-else
-    header
-    echo "SSL Certficiate was successfully installed on $FQDN!">&3
-    sleep 3
 fi
 
-echo "Finishing up...">&3
+if [[ -f /etc/letsencrypt/live/$FQDN/fullchain.pem ]] && [[ -f /etc/letsencrypt/live/$FQDN/privkey.pem ]]; then
+    success "The SSL Certificate has been successfully installed for $FQDN!"
+    sleep 3
+    echo "Configuring the new Virtual Host.."
+fi
 
-cat > /etc/apache2/sites-available/"${DOMAINSHORT}"-ssl.conf <<- _EOF_
+if [[ -f /etc/apache2/sites-available/"$FQDN"]] && [[ -d /var/www/html ]]; then
+    cat > /etc/apache2/sites-available/"$FQDN"-ssl.conf <<- _EOF_
 <VirtualHost *:443>
     Protocols h2 http/1.1
     ServerName $FQDN
-    DocumentRoot /var/www/$DOMAINSHORT
-    ErrorLog \${APACHE_LOG_DIR}/$DOMAINSHORT-error.log
-    CustomLog \${APACHE_LOG_DIR}/$DOMAINSHORT-access.log combined
+    DocumentRoot /var/www/html
+    ErrorLog \${APACHE_LOG_DIR}/$FQDN-error.log
+    CustomLog \${APACHE_LOG_DIR}/$FQDN-access.log combined
     SSLEngine On
     SSLCertificateFile /etc/letsencrypt/live/$FQDN/fullchain.pem
     SSLCertificateKeyFile /etc/letsencrypt/live/$FQDN/privkey.pem
 </VirtualHost>
 _EOF_
 
-mkdir /var/www/"$DOMAINSHORT"
+a2ensite "$FQDN"-ssl.conf
 
-cp /var/www/html/index.html /var/www/"$DOMAINSHORT"/
-
-a2ensite "$DOMAINSHORT"-ssl.conf
-
-systemctl reload apache2
-
-if [[ -f /etc/letsencrypt/live/$FQDN/fullchain.pem ]] && [[ -f /etc/letsencrypt/live/$FQDN/privkey.pem ]]; then
-    header
-    echo "SSL Certificate installed successfully.">&3
-    error
+if [[ $? -eq 0 ]]; then
+    success "Script Finished Successfully!"
+    systemctl reload apache2
+    sleep 2
     exit 0
 else
-    header
-    echo "SSL Installation failed..">&3
-    error
-    exit 1
+    error "There was a problem configuring the VirtualHost.."
+    sleep 3
+    exit 4
 fi
